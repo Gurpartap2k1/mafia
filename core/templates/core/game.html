@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mafia Game</title>
+</head>
+<body>
+    <h1>Room {{ room.code }}</h1>
+
+    <p>Welcome, {{ player.name }}!</p>
+    <p><strong>Your Role:</strong> {{ player.role }}</p>
+
+    {% if player.is_host %}
+        <h2>Kick a Player</h2>
+        <ul>
+            {% for p in room.players.all %}
+                {% if p.is_alive and not p.is_host %}
+                    <li>
+                        {{ p.name }} -
+                        <form action="{% url 'kick_player' room.code p.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Kick</button>
+                        </form>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>(Put your phone down and let the host guide the game!)</p>
+
+    <h2>End Game</h2>
+<form method="get" action="{% url 'end_game' room.code %}">
+    <button type="submit">End Game</button>
+</form>
+
+</body>
+</html>

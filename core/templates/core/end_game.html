@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Over</title>
+</head>
+<body>
+    <h1>Game Over - Room {{ room.code }}</h1>
+    <h2>Final Player Roles:</h2>
+
+    <ul>
+        {% for p in players %}
+            <li>
+                {{ p.name }} - {{ p.role }}
+                {% if not p.is_alive %}(Kicked Out){% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="{% url 'create_room' %}">Start New Game</a></p>
+</body>
+</html>

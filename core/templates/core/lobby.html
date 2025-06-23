@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mafia Lobby - Room {{ room.code }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1, h3 { color: #333; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 5px; }
+        code { background-color: #eee; padding: 2px 6px; border-radius: 3px; }
+        button { margin-top: 10px; padding: 8px 12px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h1>Mafia Game Lobby</h1>
+
+    <h3>Room Code:</h3>
+    <p><strong>{{ room.code }}</strong></p>
+
+    <h3>Join Link:</h3>
+    <p><code>{{ join_link }}</code></p>
+
+    <h3>Game Configuration:</h3>
+    <ul>
+        <li>Imposters: {{ room.config.imposters }}</li>
+        <li>Villagers: {{ room.config.villagers }}</li>
+        <li>Healers: {{ room.config.healers }}</li>
+        <li>Policemen: {{ room.config.policemen }}</li>
+    </ul>
+
+    <h3>Players Joined: <span id="player-count">{{ non_host_count }}</span> / {{ total_required }}</h3>
+    <ul id="player-list">
+        {% for player in players %}
+            <li>{{ player.name }}{% if player.is_host %} (Host){% endif %}</li>
+        {% empty %}
+            <li>No players yet</li>
+        {% endfor %}
+    </ul>
+
+    {% if is_host %}
+       <form action="{% url 'start_game' room.code %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="player_id" value="{{ request.session.player_id }}">
+            <button type="submit" id="start-button" disabled>Start Game</button>
+        </form>
+
+    {% else %}
+        <p>Waiting for host to start the game...</p>
+    {% endif %}
+
+    <script>
+        const roomCode = "{{ room.code }}";
+        const totalRequired = {{ total_required }};
+        const socket = new WebSocket(`ws://${window.location.host}/ws/lobby/${roomCode}/`);
+
+        socket.onopen = function () {
+            console.log("WebSocket connected");
+        };
+
+        socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const playerList = document.getElementById("player-list");
+            const playerCount = document.getElementById("player-count");
+            const startButton = document.getElementById("start-button");
+
+            playerList.innerHTML = '';
+            const nonHostPlayers = data.players.length - 1;  // assume host is included
+            playerCount.textContent = nonHostPlayers;
+
+            data.players.forEach(function (name) {
+                const li = document.createElement("li");
+                li.textContent = name;
+                playerList.appendChild(li);
+            });
+
+            if (startButton) {
+                // Enable start only if lobby is full
+                if (nonHostPlayers === totalRequired) {
+                    startButton.disabled = false;
+                } else {
+                    startButton.disabled = true;
+                }
+            }
+        };
+    </script>
+</body>
+</html>
