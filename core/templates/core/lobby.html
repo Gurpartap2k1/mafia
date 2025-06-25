@@ -3,86 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <title>Mafia Lobby - Room {{ room.code }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1, h3 { color: #333; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin-bottom: 5px; }
-        code { background-color: #eee; padding: 2px 6px; border-radius: 3px; }
-        button { margin-top: 10px; padding: 8px 12px; font-size: 16px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Mafia Game Lobby</h1>
+<body class="bg-gray-100 text-gray-800 p-6">
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 class="text-3xl font-bold mb-4">Mafia Game Lobby</h1>
 
-    <h3>Room Code:</h3>
-    <p><strong>{{ room.code }}</strong></p>
+        <h3 class="text-xl font-semibold">Room Code:</h3>
+        <p class="mb-4"><code class="bg-gray-200 px-2 py-1 rounded">{{ room.code }}</code></p>
 
-    <h3>Join Link:</h3>
-    <p><code>{{ join_link }}</code></p>
+        <p class="mb-4">
+            <span class="font-semibold">Share this link to invite players:</span>
+            <div class="flex items-center space-x-2 mt-2">
+                <input type="text" id="join-link" value="{{ join_link }}" readonly class="border border-gray-300 rounded p-2 w-full max-w-sm">
+                <button onclick="copyJoinLink()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Copy</button>
+            </div>
+            <p id="copy-status" class="text-green-600 mt-2 text-sm"></p>
+        </p>
 
-    <h3>Game Configuration:</h3>
-    <ul>
-        <li>Imposters: {{ room.config.imposters }}</li>
-        <li>Villagers: {{ room.config.villagers }}</li>
-        <li>Healers: {{ room.config.healers }}</li>
-        <li>Policemen: {{ room.config.policemen }}</li>
-    </ul>
+        <h3 class="text-xl font-semibold mt-6">Game Configuration:</h3>
+        <ul class="list-disc list-inside mb-4">
+            <li>Imposters: {{ room.config.imposters }}</li>
+            <li>Villagers: {{ room.config.villagers }}</li>
+            <li>Healers: {{ room.config.healers }}</li>
+            <li>Policemen: {{ room.config.policemen }}</li>
+        </ul>
 
-    <h3>Players Joined: <span id="player-count">{{ non_host_count }}</span> / {{ total_required }}</h3>
-    <ul id="player-list">
-        {% for player in players %}
-            <li>{{ player.name }}{% if player.is_host %} (Host){% endif %}</li>
-        {% empty %}
-            <li>No players yet</li>
-        {% endfor %}
-    </ul>
+        <h3 class="text-xl font-semibold">Host: <span class="font-normal">{{ host_name }}</span></h3>
+        <p class="mb-4">Players joined: <span id="player-count" class="font-semibold">{{ non_host_count }}</span> / {{ total_required }}</p>
 
-    {% if is_host %}
-       <form action="{% url 'start_game' room.code %}" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="player_id" value="{{ request.session.player_id }}">
-            <button type="submit" id="start-button" disabled>Start Game</button>
-        </form>
+        <ul id="player-list" class="mb-6 space-y-1">
+            {% for player in players %}
+                {% if not player.is_host %}
+                    <li class="bg-gray-100 px-3 py-1 rounded">{{ player.name }}</li>
+                {% endif %}
+            {% empty %}
+                <li>No players yet</li>
+            {% endfor %}
+        </ul>
 
-    {% else %}
-        <p>Waiting for host to start the game...</p>
-    {% endif %}
+        {% if is_host %}
+            <form action="{% url 'start_game' room.code %}" method="post" class="mt-4">
+                {% csrf_token %}
+                <input type="hidden" name="player_id" value="{{ request.session.player_id }}">
+                <button type="submit" id="start-button" disabled class="bg-green-500 text-white px-4 py-2 rounded disabled:opacity-50">Start Game</button>
+            </form>
+        {% else %}
+            <p class="italic text-gray-600 mt-4">Waiting for host to start the game...</p>
+        {% endif %}
+    </div>
 
+    <!-- WebSocket script -->
     <script>
         const roomCode = "{{ room.code }}";
-        const totalRequired = {{ total_required }};
-        const socket = new WebSocket(`ws://${window.location.host}/ws/lobby/${roomCode}/`);
+        const playerId = "{{ request.session.player_id }}";
+        const isHost = "{{ is_host|yesno:'true,false' }}";
 
-        socket.onopen = function () {
-            console.log("WebSocket connected");
-        };
+        const socket = new WebSocket(
+            'ws://' + window.location.host + '/ws/lobby/' + roomCode + '/'
+        );
 
-        socket.onmessage = function (e) {
+        socket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            const playerList = document.getElementById("player-list");
-            const playerCount = document.getElementById("player-count");
-            const startButton = document.getElementById("start-button");
+            if (data.type === 'player_list') {
+                const playerList = document.getElementById('player-list');
+                playerList.innerHTML = '';
 
-            playerList.innerHTML = '';
-            const nonHostPlayers = data.players.length - 1;  // assume host is included
-            playerCount.textContent = nonHostPlayers;
+                let nonHostCount = 0;
 
-            data.players.forEach(function (name) {
-                const li = document.createElement("li");
-                li.textContent = name;
-                playerList.appendChild(li);
-            });
+                data.players.forEach(name => {
+                    if (name !== "{{ room.host_name }}") {
+                        const li = document.createElement('li');
+                        li.textContent = name;
+                        li.className = "bg-gray-100 px-3 py-1 rounded";
+                        playerList.appendChild(li);
+                        nonHostCount++;
+                    }
+                });
 
-            if (startButton) {
-                // Enable start only if lobby is full
-                if (nonHostPlayers === totalRequired) {
+                const countSpan = document.getElementById('player-count');
+                if (countSpan) {
+                    countSpan.textContent = nonHostCount;
+                }
+
+                const totalRequired = {{ total_required }};
+                const startButton = document.getElementById('start-button');
+                if (startButton && nonHostCount === totalRequired) {
                     startButton.disabled = false;
-                } else {
-                    startButton.disabled = true;
+                }
+            }
+
+            if (data.type === 'game_started') {
+                const currentPlayerId = "{{ request.session.player_id }}";
+                if (data.player_id == currentPlayerId) {
+                    window.location.href = "/game/" + roomCode + "/";
                 }
             }
         };
+    </script>
+
+    <!-- Copy link button -->
+    <script>
+        function copyJoinLink() {
+            const copyText = document.getElementById("join-link");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                document.getElementById("copy-status").innerText = "Link copied to clipboard!";
+            }).catch(err => {
+                console.error("Failed to copy: ", err);
+                document.getElementById("copy-status").innerText = "Failed to copy link.";
+            });
+        }
     </script>
 </body>
 </html>

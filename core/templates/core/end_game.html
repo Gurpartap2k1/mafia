@@ -1,21 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Game Over</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Game Over - Room {{ room.code }}</h1>
-    <h2>Final Player Roles:</h2>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-xl">
+        <h1 class="text-3xl font-bold text-center text-red-600 mb-6">Game Over - Room {{ room.code }}</h1>
 
-    <ul>
-        {% for p in players %}
-            <li>
-                {{ p.name }} - {{ p.role }}
-                {% if not p.is_alive %}(Kicked Out){% endif %}
-            </li>
-        {% endfor %}
-    </ul>
+        <h2 class="text-xl font-semibold mb-4">Final Player Roles:</h2>
+        <ul class="space-y-2">
+            {% for p in players %}
+                <li class="border-b border-gray-200 pb-2">
+                    <span class="font-medium">{{ p.name }}</span> -
+                    <span class="text-gray-700">{{ p.role }}</span>
+                    {% if not p.is_alive %}
+                        <span class="text-red-500 font-semibold ml-2">(Kicked Out)</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
 
-    <p><a href="{% url 'create_room' %}">Start New Game</a></p>
+        <div class="mt-6 text-center">
+            <a href="{% url 'create_room' %}" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+                Start New Game
+            </a>
+        </div>
+    </div>
 </body>
 </html>

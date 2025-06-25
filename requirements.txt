@@ -5,14 +5,19 @@ Automat==25.4.16
 cffi==1.17.1
 channels==4.2.2
 channels_redis==4.2.1
+click==8.2.1
 constantly==23.10.4
 cryptography==45.0.4
 daphne==4.2.0
 Django==5.2.3
+django-environ==0.12.0
+gunicorn==23.0.0
+h11==0.16.0
 hyperlink==21.0.0
 idna==3.10
 incremental==24.7.2
 msgpack==1.1.1
+packaging==25.0
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycparser==2.22
@@ -25,4 +30,6 @@ sqlparse==0.5.3
 Twisted==25.5.0
 txaio==23.1.1
 typing_extensions==4.14.0
+uvicorn==0.34.3
+whitenoise==6.9.0
 zope.interface==7.2

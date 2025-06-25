@@ -1,37 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <script>
+    const roomCode = "{{ room.code }}";
+    const gameSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/game/' + roomCode + '/'
+    );
+
+    gameSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        if (data.type === 'game_over') {
+            // Redirect to game over page
+            window.location.href = "/game-over/" + roomCode + "/";
+        }
+    };
+</script>
+
+    <meta charset="UTF-8">
     <title>Mafia Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Room {{ room.code }}</h1>
+<body class="bg-gray-100 text-gray-800 p-4">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 class="text-3xl font-bold mb-6">Room {{ room.code }}</h1>
+        {% if player.is_host %}
+            <!-- 🟢 Alive / Dead Table -->
+        <div class="overflow-x-auto mb-6">
+            <table class="table-auto w-full border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="px-4 py-2 border border-gray-300 text-left">Alive</th>
+                        <th class="px-4 py-2 border border-gray-300 text-left">Dead</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border border-gray-300 align-top p-2">
+                            <ul class="space-y-1">
+                                {% for p in room.players.all %}
+                                    {% if p.is_alive and not p.is_host %}
+                                        <li>{{ p.name }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td class="border border-gray-300 align-top p-2">
+                            <ul class="space-y-1">
+                                {% for p in room.players.all %}
+                                    {% if not p.is_alive %}
+                                        <li>{{ p.name }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
 
-    <p>Welcome, {{ player.name }}!</p>
-    <p><strong>Your Role:</strong> {{ player.role }}</p>
+        <p class="text-lg mb-2">Welcome, <strong>{{ player.name }}</strong>!</p>
+        <p class="mb-6"><strong>Your Role:</strong> <span class="text-blue-600">{{ player.role }}</span></p>
 
-    {% if player.is_host %}
-        <h2>Kick a Player</h2>
-        <ul>
-            {% for p in room.players.all %}
-                {% if p.is_alive and not p.is_host %}
-                    <li>
-                        {{ p.name }} -
-                        <form action="{% url 'kick_player' room.code p.id %}" method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit">Kick</button>
-                        </form>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    {% endif %}
+        {% if player.is_host %}
+            <h2 class="text-xl font-semibold mb-2">Kick a Player</h2>
+            <ul class="space-y-2 mb-6">
+                {% for p in room.players.all %}
+                    {% if p.is_alive and not p.is_host %}
+                        <li class="flex items-center justify-between bg-gray-50 px-4 py-2 border rounded">
+                            <span>{{ p.name }}</span>
+                            <form action="{% url 'kick_player' room.code p.id %}" method="post" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Kill Player</button>
+                            </form>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% endif %}
 
-    <p>(Put your phone down and let the host guide the game!)</p>
+        <p class="italic text-gray-600 mb-6">(Put your phone down and let the host guide the game!)</p>
 
-    <h2>End Game</h2>
-<form method="get" action="{% url 'end_game' room.code %}">
-    <button type="submit">End Game</button>
-</form>
-
+        {% if player.is_host %}
+            <form method="get" action="{% url 'end_game' room.code %}" onsubmit="return confirm('Are you sure you want to end the game for everyone?');">
+        <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900">End Game</button>
+            </form>
+        {% endif %}
+    </div>
 </body>
 </html>

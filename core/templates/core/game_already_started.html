@@ -1,0 +1,19 @@
+<!-- templates/core/game_already_started.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Already Started</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-red-50 text-gray-800 min-h-screen flex items-center justify-center px-4">
+    <div class="bg-white shadow-lg rounded-lg p-8 max-w-md w-full text-center">
+        <h2 class="text-2xl font-bold text-red-600 mb-4">Game in Room {{ room.code }} Has Already Started</h2>
+        <p class="mb-6">Sorry, you can't join a game that's already in progress.</p>
+        <a href="{% url 'create_room' %}" class="inline-block bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+            Start a New Game
+        </a>
+    </div>
+</body>
+</html>

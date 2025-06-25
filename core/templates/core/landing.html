@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Welcome to Mafia{% endblock %}
+
+{% block content %}
+<div class="text-center mt-20">
+    <h1 class="text-4xl font-bold mb-8">Welcome to Mafia Game</h1>
+    <div class="space-x-4">
+        <a href="{% url 'create_room' %}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg text-xl">Create Room</a>
+        </div>
+</div>
+{% endblock %}

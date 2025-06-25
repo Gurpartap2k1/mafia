@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Game Over - Room {{ room.code }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 p-6">
+    <div class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6">
+        <h1 class="text-3xl font-bold mb-6">Game Over - Room {{ room.code }}</h1>
+        <h2 class="text-xl font-semibold mb-4">Final Player Roles</h2>
+
+        <ul class="list-disc pl-6 space-y-2">
+            {% for p in players %}
+                <li>
+                    <strong>{{ p.name }}</strong> — <span class="text-blue-700">{{ p.role }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div class="mt-6">
+            <a href="{% url 'create_room' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                Start New Game
+            </a>
+        </div>
+    </div>
+</body>
+</html>
