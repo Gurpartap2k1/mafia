@@ -29,7 +29,15 @@ SECRET_KEY = 'django-insecure-f04xinj0(9rmxe3=4t#_i9ln^pe$51&yah*9#s@$v14lugnmmo
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'mafia-ztep.onrender.com',
+    'localhost',
+    '127.0.0.1'
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://mafia-ztep.onrender.com'
+]
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
