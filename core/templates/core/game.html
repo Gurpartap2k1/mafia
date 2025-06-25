@@ -3,8 +3,11 @@
 <head>
     <script>
     const roomCode = "{{ room.code }}";
+    const loc = window.location;
+    const wsScheme = loc.protocol === "https:" ? "wss" : "ws";
+
     const gameSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/game/' + roomCode + '/'
+      `${wsScheme}://${window.location.host}/ws/game/${roomCode}/`
     );
 
     gameSocket.onmessage = function (e) {

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: mafia-game
+    name: mafia
     env: python
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
     startCommand: "daphne mafia.asgi:application"

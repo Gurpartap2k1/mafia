@@ -59,9 +59,11 @@
         const roomCode = "{{ room.code }}";
         const playerId = "{{ request.session.player_id }}";
         const isHost = "{{ is_host|yesno:'true,false' }}";
+        const loc = window.location;
+        const wsScheme = loc.protocol === "https:" ? "wss" : "ws";
 
         const socket = new WebSocket(
-            'ws://' + window.location.host + '/ws/lobby/' + roomCode + '/'
+          `${wsScheme}://${window.location.host}/ws/lobby/${roomCode}/`
         );
 
         socket.onmessage = function(e) {
